@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>写作句型背诵卡片 - Day 2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            font-size: 1.6rem;
+            margin-bottom: 6px;
+        }
+        .subtitle {
+            color: #aaa;
+            font-size: 14px;
+        }
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-left: 8px;
+            font-weight: 600;
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            height: 6px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+        .progress-text {
+            text-align: center;
+            color: #888;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        /* 翻转卡片 */
+        .flashcard {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            min-height: 200px;
+            cursor: pointer;
+            perspective: 1000px;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            width: 100%;
+            min-height: 140px;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .flashcard-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border-radius: 15px;
+            padding: 25px;
+        }
+        .card-number {
+            position: absolute;
+            top: 12px;
+            left: 15px;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        .card-tag {
+            position: absolute;
+            top: 12px;
+            right: 15px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .tag-new { background: rgba(245, 87, 108, 0.6); }
+        .tag-review { background: rgba(255,255,255,0.2); }
+        .card-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 12px;
+        }
+        .card-text {
+            font-size: 17px;
+            line-height: 1.7;
+        }
+        .nav-hint {
+            text-align: center;
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .nav-buttons button {
+            flex: 1;
+            padding: 14px;
+            font-size: 15px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            font-weight: 500;
+        }
+        .nav-buttons button:hover { transform: translateY(-2px); }
+        .nav-buttons button:active { transform: translateY(0); }
+        .btn-prev { background: #4a5568; color: white; }
+        .btn-next { background: #4a5568; color: white; }
+        .btn-prev:disabled, .btn-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        /* 词根词缀 */
+        .etymology-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+        .etymology-title {
+            font-size: 15px;
+            color: #aaa;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .word-analysis {
+            display: grid;
+            gap: 12px;
+        }
+        .word-item {
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+        }
+        .word-main {
+            font-size: 17px;
+            color: #fff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .word-type {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            color: white;
+        }
+        .word-type.n { background: #e74c3c; }
+        .word-type.v { background: #27ae60; }
+        .word-type.adj { background: #f39c12; }
+        .word-type.adv { background: #3498db; }
+        .word-type.prep { background: #9b59b6; }
+        .word-type.conj { background: #1abc9c; }
+        .word-type.pron { background: #e91e63; }
+        .word-type.art { background: #7f8c8d; }
+        .morphemes {
+            font-size: 13px;
+            color: #888;
+            line-height: 1.8;
+        }
+        .morpheme-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-right: 6px;
+            font-size: 12px;
+        }
+        .morpheme-tag.prefix { background: rgba(231, 76, 60, 0.3); color: #ff7675; }
+        .morpheme-tag.root { background: rgba(46, 204, 113, 0.3); color: #55efc4; }
+        .morpheme-tag.suffix { background: rgba(52, 152, 219, 0.3); color: #74b9ff; }
+        .meaning {
+            color: #aaa;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        /* 用法提示 */
+        .usage-tip {
+            background: rgba(240, 147, 251, 0.1);
+            border-left: 3px solid #f093fb;
+            border-radius: 0 12px 12px 0;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .usage-tip-title {
+            font-size: 13px;
+            color: #f093fb;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .usage-tip-text {
+            font-size: 13px;
+            color: #ccc;
+            line-height: 1.7;
+        }
+
+        /* 底部统计 */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 25px;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 写作句型背诵</h1>
+            <p class="subtitle">逐句拆分 · 词根词缀分析 <span class="badge">Day 2</span></p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <p class="progress-text" id="progressText">0 / 0 已学习</p>
+
+        <div class="flashcard" id="flashcard" onclick="flipCard()">
+            <div class="flashcard-inner">
+                <div class="flashcard-front">
+                    <span class="card-number" id="cardNumber">1/10</span>
+                    <span class="card-tag" id="cardTag">新学</span>
+                    <div class="card-label">点击卡片查看英文</div>
+                    <div class="card-text" id="cardFront"></div>
+                </div>
+                <div class="flashcard-back">
+                    <div class="card-text" id="cardBack"></div>
+                </div>
+            </div>
+        </div>
+
+        <p class="nav-hint">← → 键切换 · 空格/回车翻转</p>
+
+        <div class="nav-buttons">
+            <button class="btn-prev" id="btnPrev" onclick="prevCard()">← 上一句</button>
+            <button class="btn-next" id="btnNext" onclick="nextCard()">下一句 →</button>
+        </div>
+
+        <div class="etymology-section">
+            <div class="etymology-title">🔍 本句重点词汇词根词缀</div>
+            <div class="word-analysis" id="wordAnalysis"></div>
+        </div>
+
+        <div class="usage-tip" id="usageTip">
+            <div class="usage-tip-title">💡 用法提示</div>
+            <div class="usage-tip-text" id="usageTipText"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="statTotal">10</div>
+                <div class="stat-label">总句数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="statNew">5</div>
+                <div class="stat-label">今日新学</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="statReview">5</div>
+                <div class="stat-label">复习巩固</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sentenceData = [
+            // === 复习：Day 1 句型 ===
+            {
+                chinese: '随着社会日益进步和复杂化，<主题>在社会成员的生活中发挥重要作用…',
+                english: 'As society becomes more and more advanced and complicated,',
+                isNew: false,
+                words: [
+                    { word: 'society', type: 'n', morphemes: [{ part: 'soci', type: 'root', meaning: '社会/同伴' }, { part: '-ety', type: 'suffix', meaning: '名词后缀' }], note: 'n. 社会' },
+                    { word: 'advanced', type: 'adj', morphemes: [{ part: 'ad-', type: 'prefix', meaning: '向...' }, { part: 'van', type: 'root', meaning: '前面' }, { part: '-ced', type: 'suffix', meaning: '形容词后缀' }], note: 'adj. 先进的' },
+                    { word: 'complicated', type: 'adj', morphemes: [{ part: 'com-', type: 'prefix', meaning: '共同' }, { part: 'plic', type: 'root', meaning: '折叠' }, { part: '-ated', type: 'suffix', meaning: '形容词后缀' }], note: 'adj. 复杂的' }
+                ],
+                tip: '开篇万能句式。"As"引导让步/背景从句，后面接具体论点。用 "advanced and complicated" 替换 "more and more" 显得词汇更丰富。'
+            },
+            {
+                chinese: '<主题>在社会成员的生活和社会发展本身中发挥重要作用',
+                english: 'theme plays an important role in the lives of individual members of the society',
+                isNew: false,
+                words: [
+                    { word: 'important', type: 'adj', morphemes: [{ part: 'im-', type: 'prefix', meaning: '向内' }, { part: 'port', type: 'root', meaning: '拿/运' }, { part: '-ant', type: 'suffix', meaning: '形容词后缀' }], note: 'adj. 重要的' },
+                    { word: 'individual', type: 'adj', morphemes: [{ part: 'in-', type: 'prefix', meaning: '不' }, { part: 'divid', type: 'root', meaning: '分割' }, { part: '-ual', type: 'suffix', meaning: '形容词后缀' }], note: 'adj. 个人的' },
+                    { word: 'members', type: 'n', morphemes: [{ part: 'member', type: 'root', meaning: '成员' }, { part: '-s', type: 'suffix', meaning: '复数' }], note: 'n. 成员们' }
+                ],
+                tip: '"play an important role in..." 是四级作文核心句式。可以替换为 play a vital/crucial/significant role。'
+            },
+            {
+                chinese: '以及社会本身的发展',
+                english: 'and in the development of the society itself.',
+                isNew: false,
+                words: [
+                    { word: 'development', type: 'n', morphemes: [{ part: 'de-', type: 'prefix', meaning: '向下' }, { part: 'velo(p)', type: 'root', meaning: '展开' }, { part: '-ment', type: 'suffix', meaning: '名词后缀' }], note: 'n. 发展' },
+                    { word: 'itself', type: 'pron', morphemes: [{ part: 'it', type: 'root', meaning: '它' }, { part: '-self', type: 'suffix', meaning: '自身' }], note: 'pron. 它自己' }
+                ],
+                tip: '"itself" 用于强调，放在名词后面表示"社会本身"。写作中适当使用反身代词能增强语气。'
+            },
+            {
+                chinese: '人们普遍认为',
+                english: 'It is universally acknowledged that',
+                isNew: false,
+                words: [
+                    { word: 'universally', type: 'adv', morphemes: [{ part: 'uni-', type: 'prefix', meaning: '统一/一' }, { part: 'vers', type: 'root', meaning: '转' }, { part: '-al', type: 'suffix', meaning: '形容词' }, { part: '-ly', type: 'suffix', meaning: '副词后缀' }], note: 'adv. 普遍地' },
+                    { word: 'acknowledged', type: 'v', morphemes: [{ part: 'ac-', type: 'prefix', meaning: '向' }, { part: 'know', type: 'root', meaning: '知道' }, { part: '-ledge', type: 'suffix', meaning: '名词/动词后缀' }, { part: '-ed', type: 'suffix', meaning: '过去式' }], note: 'v. 公认' }
+                ],
+                tip: '《傲慢与偏见》开篇名句型。It is + 副词 + 过去分词 + that 从句，是引出观点的高级表达。'
+            },
+            {
+                chinese: '<主题>引发了更多公众关注',
+                english: 'theme arouses more public attention.',
+                isNew: false,
+                words: [
+                    { word: 'arouses', type: 'v', morphemes: [{ part: 'a-', type: 'prefix', meaning: '加强语气' }, { part: 'rouse', type: 'root', meaning: '唤醒/激起' }, { part: '-s', type: 'suffix', meaning: '第三人称单数' }], note: 'v. 引起/激起' },
+                    { word: 'attention', type: 'n', morphemes: [{ part: 'at-', type: 'prefix', meaning: '向' }, { part: 'tent', type: 'root', meaning: '伸展' }, { part: '-ion', type: 'suffix', meaning: '名词后缀' }], note: 'n. 关注/注意力' },
+                    { word: 'public', type: 'adj', morphemes: [{ part: 'publi(c)', type: 'root', meaning: '公众' }, { part: '-c', type: 'suffix', meaning: '形容词后缀' }], note: 'adj. 公众的' }
+                ],
+                tip: '"arouse attention" 比 "attract attention" 更书面。注意主语第三人称单数时 arouse → arouses。'
+            },
+            // === 新学：Day 2 句型 ===
+            {
+                chinese: '不同的人持有不同的观点。有些人认为……，而另一些人则持相反的观点。',
+                english: 'Different people hold different opinions. Some people believe that..., while others hold the opposite view.',
+                isNew: true,
+                words: [
+                    { word: 'opinions', type: 'n', morphemes: [{ part: 'opin', type: 'root', meaning: '意见/看法' }, { part: '-ion', type: 'suffix', meaning: '名词后缀' }, { part: '-s', type: 'suffix', meaning: '复数' }], note: 'n. 观点(复数)' },
+                    { word: 'believe', type: 'v', morphemes: [{ part: 'be-', type: 'prefix', meaning: '使...' }, { part: 'lieve', type: 'root', meaning: '爱/信任' }], note: 'v. 相信' },
+                    { word: 'opposite', type: 'adj', morphemes: [{ part: 'op-', type: 'prefix', meaning: '对面' }, { part: 'pos', type: 'root', meaning: '放置' }, { part: '-ite', type: 'suffix', meaning: '形容词后缀' }], note: 'adj. 相反的' }
+                ],
+                tip: '经典对比论证句式。用 "while" 连接两种对立观点，比 "but" 更正式。适合议论文第二段开头。'
+            },
+            {
+                chinese: '关于这个问题，人们观点各异，莫衷一是。',
+                english: 'When it comes to this issue, opinions vary from person to person.',
+                isNew: true,
+                words: [
+                    { word: 'issue', type: 'n', morphemes: [{ part: 'issu', type: 'root', meaning: '流出/发出' }, { part: '-e', type: 'suffix', meaning: '名词' }], note: 'n. 问题/议题' },
+                    { word: 'vary', type: 'v', morphemes: [{ part: 'vari', type: 'root', meaning: '变化/不同' }, { part: '-y', type: 'suffix', meaning: '动词/形容词后缀' }], note: 'v. 变化/不同' },
+                    { word: 'person', type: 'n', morphemes: [{ part: 'per-', type: 'prefix', meaning: '通过' }, { part: 'son', type: 'root', meaning: '声音' }], note: 'n. 人 (per-son: 通过声音辨识的人)' }
+                ],
+                tip: '"When it comes to..." 固定搭配，后接名词或 doing。"vary from person to person" 比单纯说 "different opinions" 更地道。'
+            },
+            {
+                chinese: '尽管有诸多益处，但我们也不能忽视它可能带来的负面影响。',
+                english: 'Despite the fact that there are many benefits, we cannot ignore the negative effects it may bring about.',
+                isNew: true,
+                words: [
+                    { word: 'despite', type: 'prep', morphemes: [{ part: 'de-', type: 'prefix', meaning: '向下/离开' }, { part: 'spit', type: 'root', meaning: '看/注视' }, { part: '-e', type: 'suffix', meaning: '' }], note: 'prep. 尽管' },
+                    { word: 'benefits', type: 'n', morphemes: [{ part: 'bene-', type: 'prefix', meaning: '好/善' }, { part: 'fit', type: 'root', meaning: '做' }, { part: '-s', type: 'suffix', meaning: '复数' }], note: 'n. 好处 (bene-fit: 做好事)' },
+                    { word: 'ignore', type: 'v', morphemes: [{ part: 'ig-', type: 'prefix', meaning: '不' }, { part: 'nor', type: 'root', meaning: '知道' }, { part: '-e', type: 'suffix', meaning: '' }], note: 'v. 忽视 (同源: ignorant 无知的)' },
+                    { word: 'negative', type: 'adj', morphemes: [{ part: 'neg', type: 'root', meaning: '否定/不' }, { part: '-at', type: 'suffix', meaning: '' }, { part: '-ive', type: 'suffix', meaning: '形容词后缀' }], note: 'adj. 负面的' }
+                ],
+                tip: '"Despite" 后接名词或 the fact that 从句。"cannot ignore" 比 "should not neglect" 更有力。转折句是高分的必备结构。'
+            },
+            {
+                chinese: '综上所述，基于以上分析，我们可以得出这样的结论。',
+                english: 'To sum up, based on the above analysis, we can draw the conclusion that',
+                isNew: true,
+                words: [
+                    { word: 'analysis', type: 'n', morphemes: [{ part: 'ana-', type: 'prefix', meaning: '向上/彻底' }, { part: 'lysis', type: 'root', meaning: '松开/解开' }], note: 'n. 分析 (ana-lysis: 彻底解开)' },
+                    { word: 'conclusion', type: 'n', morphemes: [{ part: 'con-', type: 'prefix', meaning: '共同/一起' }, { part: 'clus', type: 'root', meaning: '关闭' }, { part: '-ion', type: 'suffix', meaning: '名词后缀' }], note: 'n. 结论 (con-clus: 一起关闭→得出结论)' },
+                    { word: 'draw', type: 'v', morphemes: [{ part: 'draw', type: 'root', meaning: '拉/牵引' }], note: 'v. 得出 (draw a conclusion)' }
+                ],
+                tip: '结尾段万能句式。"To sum up" / "In conclusion" / "All in all" 三选一。"draw the conclusion that..." 比 "we can know" 高级很多。'
+            },
+            {
+                chinese: '只有当我们全社会齐心协力，才能建设一个更加美好的未来。',
+                english: 'Only when the whole society works together can we build a better future.',
+                isNew: true,
+                words: [
+                    { word: 'society', type: 'n', morphemes: [{ part: 'soci', type: 'root', meaning: '社会/同伴' }, { part: '-ety', type: 'suffix', meaning: '名词后缀' }], note: 'n. 社会' },
+                    { word: 'together', type: 'adv', morphemes: [{ part: 'to', type: 'prep', meaning: '向' }, { part: 'geth', type: 'root', meaning: '聚集' }, { part: '-er', type: 'suffix', meaning: '副词后缀' }], note: 'adv. 一起' },
+                    { word: 'future', type: 'n', morphemes: [{ part: 'fut-', type: 'root', meaning: '将来' }, { part: '-ure', type: 'suffix', meaning: '名词后缀' }], note: 'n. 未来' }
+                ],
+                tip: '"Only when..." 放句首时，主句需要倒装：can we build。倒装句是四级作文加分项，一定要记住！'
+            }
+        ];
+
+        let currentIndex = 0;
+        let learnedCount = 0;
+
+        function updateDisplay() {
+            const data = sentenceData[currentIndex];
+
+            // 更新卡片
+            document.getElementById('cardNumber').textContent = `${currentIndex + 1}/${sentenceData.length}`;
+            document.getElementById('cardTag').textContent = data.isNew ? '⭐ 新学' : '📖 复习';
+            document.getElementById('cardTag').className = 'card-tag ' + (data.isNew ? 'tag-new' : 'tag-review');
+            document.getElementById('cardFront').textContent = data.chinese;
+            document.getElementById('cardBack').textContent = data.english;
+            document.getElementById('flashcard').classList.remove('flipped');
+
+            // 更新按钮状态
+            document.getElementById('btnPrev').disabled = currentIndex === 0;
+            document.getElementById('btnNext').disabled = currentIndex === sentenceData.length - 1;
+
+            // 更新词根词缀
+            renderWordAnalysis(data.words);
+
+            // 更新用法提示
+            document.getElementById('usageTipText').textContent = data.tip;
+
+            // 更新进度
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const pct = ((currentIndex + 1) / sentenceData.length) * 100;
+            document.getElementById('progressFill').style.width = pct + '%';
+            document.getElementById('progressText').textContent = `${currentIndex + 1} / ${sentenceData.length} 已浏览`;
+        }
+
+        function renderWordAnalysis(words) {
+            const container = document.getElementById('wordAnalysis');
+            container.innerHTML = words.map(w => `
+                <div class="word-item">
+                    <div class="word-main">
+                        ${w.word}
+                        <span class="word-type ${w.type}">${w.type}</span>
+                    </div>
+                    <div class="morphemes">
+                        ${w.morphemes.map(m => `<span class="morpheme-tag ${m.type}">${m.part}</span>→${m.meaning}`).join(' + ')}
+                    </div>
+                    <div class="meaning">💡 ${w.note}</div>
+                </div>
+            `).join('');
+        }
+
+        function flipCard() {
+            document.getElementById('flashcard').classList.toggle('flipped');
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateDisplay();
+            }
+        }
+
+        function nextCard() {
+            if (currentIndex < sentenceData.length - 1) {
+                currentIndex++;
+                updateDisplay();
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') prevCard();
+            if (e.key === 'ArrowRight') nextCard();
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                flipCard();
+            }
+        });
+
+        updateDisplay();
+    </script>
+</body>
+</html>
